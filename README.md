@@ -183,8 +183,79 @@ kubectl --context $aksBlueClusterName get pods,services,ingresses,AzureIngressPr
 ```
 
 ```console
+az network application-gateway address-pool list\
+ --gateway-name $applicationGatewayName\
+ --resource-group $resourceGroupName\
+ | jq '.[] | "\(.name), \(.backendAddresses)"'
+```
+
+```console
+az network application-gateway http-listener list\
+ --gateway-name $applicationGatewayName\
+ --resource-group $resourceGroupName\
+ | jq '.[] | "\(.name), \(.protocol), \(.hostNames)"'
+```
+
+```console
 curl -H 'Host: green.example.com' -I $applicationGatewayPublicIpAddress
 curl -H 'Host: blue.example.com' -I $applicationGatewayPublicIpAddress
+```
+
+## Example Outputs
+
+```console
+$ az network application-gateway address-pool list\
+ --gateway-name $applicationGatewayName\
+ --resource-group $resourceGroupName\
+ | jq '.[] | "\(.name), \(.backendAddresses)"'
+"defaultaddresspool, []"
+"pool-default-appblue-80-bp-80, [{\"fqdn\":null,\"ipAddress\":\"10.16.0.10\"}]"
+"pool-default-appgreen-80-bp-80, [{\"fqdn\":null,\"ipAddress\":\"10.8.0.28\"}]"
+```
+
+```console
+$ az network application-gateway http-listener list\
+ --gateway-name $applicationGatewayName\
+ --resource-group $resourceGroupName\
+ | jq '.[] | "\(.name), \(.protocol), \(.hostNames)"'
+"fl-4eeee60452bce917a80226985da2dd28, Http, [\"blue.example.com\"]"
+"fl-93092c57d9659f8b9b48580eca6d8292, Http, [\"green.example.com\"]"
+```
+
+```console
+$ curl -I $applicationGatewayPublicIpAddress
+HTTP/1.1 404 Not Found
+Server: Microsoft-Azure-Application-Gateway/v2
+Date: Wed, 13 Apr 2022 19:10:24 GMT
+Content-Type: text/html
+Content-Length: 179
+Connection: keep-alive
+```
+
+```console
+$ curl -H 'Host: green.example.com' -I $applicationGatewayPublicIpAddress
+HTTP/1.1 200 OK
+Date: Wed, 13 Apr 2022 19:10:54 GMT
+Content-Type: text/html
+Content-Length: 615
+Connection: keep-alive
+Server: nginx/1.21.6
+Last-Modified: Tue, 25 Jan 2022 15:03:52 GMT
+ETag: "61f01158-267"
+Accept-Ranges: bytes
+```
+
+```console
+$ curl -H 'Host: blue.example.com' -I $applicationGatewayPublicIpAddress
+HTTP/1.1 200 OK
+Date: Wed, 13 Apr 2022 19:11:16 GMT
+Content-Type: text/html
+Content-Length: 45
+Connection: keep-alive
+Server: Apache/2.4.53 (Unix)
+Last-Modified: Mon, 11 Jun 2007 18:53:14 GMT
+ETag: "2d-432a5e4a73a80"
+Accept-Ranges: bytes
 ```
 
 ## References
