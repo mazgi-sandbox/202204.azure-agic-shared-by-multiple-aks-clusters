@@ -19,7 +19,12 @@ location="westus2"
 ### Create the Service Principal
 
 ```console
-az ad sp create-for-rbac --name $servicePrincipalName --role Contributor --scopes /subscriptions/${subsctiptionId} -o json > auth.json
+az ad sp create-for-rbac\
+ --name $servicePrincipalName\
+ --role Contributor\
+ --scopes /subscriptions/${subsctiptionId}\
+ -o json\
+ > auth.json
 ```
 
 ```console
@@ -68,8 +73,9 @@ jq "." deployment-outputs.json
 
 ### Set up AGIC
 
+Use the deployment-outputs.json created after deployment to get the cluster name and resource group name.
+
 ```console
-# use the deployment-outputs.json created after deployment to get the cluster name and resource group name
 jq -r ".aksGreenClusterName.value" deployment-outputs.json
 aksGreenClusterName=$(jq -r ".aksGreenClusterName.value" deployment-outputs.json)
 jq -r ".aksBlueClusterName.value" deployment-outputs.json
@@ -84,8 +90,8 @@ az aks get-credentials --resource-group $resourceGroupName --name $aksBlueCluste
 ```
 
 ```console
-kubectl --context $aksGreenClusterName get pods,services,ingresses,AzureIngressProhibitedTargets
-kubectl --context $aksBlueClusterName get pods,services,ingresses,AzureIngressProhibitedTargets
+kubectl --context $aksGreenClusterName get pods,services,ingresses
+kubectl --context $aksBlueClusterName get pods,services,ingresses
 ```
 
 ```console
@@ -94,8 +100,8 @@ kubectl create --context $aksBlueClusterName -f https://raw.githubusercontent.co
 ```
 
 ```console
-kubectl --context $aksGreenClusterName get pods,services,ingresses,AzureIngressProhibitedTargets
-kubectl --context $aksBlueClusterName get pods,services,ingresses,AzureIngressProhibitedTargets
+kubectl --context $aksGreenClusterName get pods,services,ingresses
+kubectl --context $aksBlueClusterName get pods,services,ingresses
 ```
 
 ### Set up application-gateway-kubernetes-ingress via Helm
@@ -140,6 +146,13 @@ kubectl --context $aksBlueClusterName get pods,services,ingresses,AzureIngressPr
 ### Deploy an App on each AKS Cluster
 
 ```console
+jq -r ".applicationGatewayPublicIpAddress.value" deployment-outputs.json
+applicationGatewayPublicIpAddress=$(jq -r ".applicationGatewayPublicIpAddress.value" deployment-outputs.json)
+curl -H 'Host: green.example.com' -I $applicationGatewayPublicIpAddress
+curl -H 'Host: blue.example.com' -I $applicationGatewayPublicIpAddress
+```
+
+```console
 kubectl apply --context $aksGreenClusterName -f app.on-green.yaml
 kubectl apply --context $aksBlueClusterName -f app.on-blue.yaml
 ```
@@ -170,8 +183,6 @@ kubectl --context $aksBlueClusterName get pods,services,ingresses,AzureIngressPr
 ```
 
 ```console
-jq -r ".applicationGatewayPublicIpAddress.value" deployment-outputs.json
-applicationGatewayPublicIpAddress=$(jq -r ".applicationGatewayPublicIpAddress.value" deployment-outputs.json)
 curl -H 'Host: green.example.com' -I $applicationGatewayPublicIpAddress
 curl -H 'Host: blue.example.com' -I $applicationGatewayPublicIpAddress
 ```

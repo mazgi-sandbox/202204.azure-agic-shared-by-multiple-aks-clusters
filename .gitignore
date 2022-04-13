@@ -1,0 +1,4 @@
+.env*
+auth.json
+deployment-outputs.json
+parameters.json
