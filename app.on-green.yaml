@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: appgreen
+  labels:
+    app: appgreen
+spec:
+  containers:
+    - image: nginx
+      name: nginx
+      ports:
+        - containerPort: 80
+          protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appgreen
+spec:
+  selector:
+    app: appgreen
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: appgreen
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+spec:
+  rules:
+    - host: "green.example.com"
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: appgreen
+                port:
+                  number: 80
+            pathType: Exact

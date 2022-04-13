@@ -1,0 +1,6 @@
+apiVersion: "appgw.ingress.k8s.io/v1"
+kind: AzureIngressProhibitedTarget
+metadata:
+  name: for-green-example-com
+spec:
+  hostname: blue.example.com
